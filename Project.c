@@ -182,6 +182,14 @@ int mode_Tenth_One(int value){
 }
 
 
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//Use This for the display! Putting in the Celsius value will do things for you.
+void DisplaySevenSegment(int value){
+    DisplayHexR4(mode_Tenth_One(value));
+    DisplayHexL2(Thousand_Hundred_Separator(value));
+}
+
+
 
 
 //Main code
@@ -194,9 +202,8 @@ int main(void){
     //Repeating while loop
     while(1){
 
-        DisplayHexR4(mode_Tenth_One(Test));
-        DisplayHexL2(Thousand_Hundred_Separator(Test));
 
+        DisplaySevenSegment(Test);
 
 
 
