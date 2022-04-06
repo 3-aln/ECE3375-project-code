@@ -2,10 +2,11 @@
 //LED for mode check up
 //LED0: Turn on when the machine is turned on.
 //LED1: Lights up when the Celsius mode is on. LED is off when Fahrenheit mode is on.
-//LED2: 
-//LED3: 
-//LED4: Safety switch: Turns on when the current temperature is over 30 degress of celsius
+//LED2: Safety switch: Turns on when the current temperature is over 30 degress of celsius
 volatile int *LED_PTR = (int *)0xFF200000;
+
+int current_LED = 0b0;
+int current_LED_temp = 0b0;
 
 int LED_Bit[] = {0b0, 0b1, 0b11, 0b111, 0b1111, 0b11111, 0b111111, 0b1111111, 0b11111111, 0b111111111, 0b1111111111};
 
@@ -23,13 +24,19 @@ volatile int *hex_ptr1 = (int *)0xFF200030;
 //Switch 1 = Celsius or Fahrenheit mode (Up = Celsius, Down = Fahrenheit)
 volatile int *SW_BASE_ptr = (int *)0xFF200040;
 
-int set_mode = 0;
+
 
 
 //Button address
 //Button 0: Start
 //Button 1: Stop
 volatile int *KEY_BASE_ptr = (int *)0xFF200050;
+
+//Operating state = 1 when the start button was pressed
+//Operating state = 0 when the stop button was pressed
+int Operating_state = 0;
+
+
 
 //GPIO Address
 # define GPIO_A_BASE 0xFF200060
@@ -47,9 +54,7 @@ int bit_mask_15 = 0b1000000000000000;
 
 
 
-//Operating state = 1 when the start button was pressed
-//Operating state = 0 when the stop button was pressed
-int Operating_state = 0;
+
 
 
 
@@ -157,13 +162,25 @@ int Thousand_Hundred_Separator(int value){
     int Mode_Button = ReadSwitches() & 0b10;
     //Celsius
     if(Mode_Button == 0b10){
-        *(LED_PTR) = 0b10;
+        current_LED_temp = current_LED & 0b10;
+
+        if(current_LED_temp == 0b00){
+                current_LED += 0b10;
+        }
+
         val = value;
     }
     //Fahrenheit
     else{
-        *(LED_PTR) = 0b00;
+        current_LED_temp = current_LED & 0b10;
+
+        if(current_LED_temp == 0b10){
+                current_LED -= 0b10;
+        }
+
         val = (value*(9.0/5))+32;
+
+
     }
 
     int Thousand = (val / 1000) % 10;
@@ -194,15 +211,17 @@ int mode_Tenth_One(int value){
 
     //Celsius
     if(Mode_Button == 0b10){
-        *(LED_PTR) = 0b10;
+
         val = value;
         Mode_Int = (0x39)+(0x63*256);
+
     }
     //Fahrenheit
     else{
-        *(LED_PTR) = 0b00;        
+
         val = (value*(9.0/5))+32;
         Mode_Int = (0x71)+(0x63*256);
+
     }
     int Tenth = (val / 10) % 10;
     int One = val % 10;
@@ -241,7 +260,14 @@ void ADC_READ(void){
     adc_data_divided = adc_data / ADC_Interval;
     adc_int = adc_data_divided - (adc_data_divided % 1);
 
-    DisplaySevenSegment(adc_int);
+    int switch_set = ReadSwitches() & 0b1;
+
+    if(switch_set == 0b1){
+        set_up_temp_c = adc_int;
+        DisplaySevenSegment(adc_int);
+        
+    }
+    
 
 
 }
@@ -265,7 +291,50 @@ int main(void){
 
 
         DisplaySevenSegment(Test);
+        ADC_READ();
 
+        //Start or stop the machine
+        if(ReadButtons()==0b01){
+            Operating_state = 1;
+
+        }
+        else if(ReadButtons()==0b10){
+            Operating_state = 0;
+            
+        }
+
+
+        //Compares the current temperature and the set up temperature
+        if(current_temp_c >= set_up_temp_c){
+            
+            Operating_state = 0;
+        }
+        else{
+
+        }
+
+
+        //Operating state LED
+        if(Operating_state == 1){
+
+            current_LED_temp = current_LED & 0b1;
+
+            if(current_LED_temp == 0b0){
+                current_LED += 0b1;
+            }
+
+        }
+        else{
+
+            current_LED_temp = current_LED & 0b1;
+
+            if(current_LED_temp == 0b1){
+                current_LED -= 0b1;
+            }
+        }
+
+
+        *(LED_PTR) = current_LED;
 
 
 
