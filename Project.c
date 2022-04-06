@@ -85,6 +85,8 @@ int adc_data_divided = 0;
 int adc_int = 0;
 int adc_data_temp = 0;
 
+int adc_real = 0;
+
 //Maximum range of the returning data from the ADC (12 bits)
 //Let 4095 be 81 degrees of celsius and 0 be 0 degree of celsius
 //We need to read in resolution of 1 degree of celsius
@@ -253,11 +255,11 @@ void ADC_READ(void){
     if(adc_data_temp &= bit_mask_15){
 
         //Remove the status bit and store in adc_data
-        adc_data = adc_data - bit_mask_15;
+        adc_data_divided = adc_data - bit_mask_15;
 
     }
 
-    adc_data_divided = adc_data / ADC_Interval;
+    adc_data_divided = adc_data_divided / ADC_Interval;
     adc_int = adc_data_divided - (adc_data_divided % 1);
 
     int switch_set = ReadSwitches() & 0b1;
@@ -282,7 +284,7 @@ void ADC_READ(void){
 //Main code
 int main(void){
 
-    int Test = 123;
+    int Test = 456;
 
 
 
