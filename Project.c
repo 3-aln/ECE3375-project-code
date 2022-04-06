@@ -284,15 +284,18 @@ void ADC_READ(void){
 //Main code
 int main(void){
 
-    int Test = 456;
+    int Test = 50;
 
 
 
     //Repeating while loop
     while(1){
 
+    int switch_set = ReadSwitches() & 0b1;
 
+    if(switch_set == 0b0){
         DisplaySevenSegment(Test);
+    }0
         ADC_READ();
 
         //Start or stop the machine
