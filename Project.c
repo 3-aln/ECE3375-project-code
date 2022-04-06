@@ -295,7 +295,7 @@ int main(void){
 
     if(switch_set == 0b0){
         DisplaySevenSegment(Test);
-    }0
+    }
         ADC_READ();
 
         //Start or stop the machine
