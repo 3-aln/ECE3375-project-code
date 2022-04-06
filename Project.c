@@ -255,11 +255,11 @@ void ADC_READ(void){
     if(adc_data_temp &= bit_mask_15){
 
         //Remove the status bit and store in adc_data
-        adc_data_divided = adc_data - bit_mask_15;
+        adc_data = adc_data - bit_mask_15;
 
     }
 
-    adc_data_divided = adc_data_divided / ADC_Interval;
+    adc_data_divided = adc_data / ADC_Interval;
     adc_int = adc_data_divided - (adc_data_divided % 1);
 
     int switch_set = ReadSwitches() & 0b1;
