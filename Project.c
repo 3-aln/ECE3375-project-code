@@ -32,6 +32,8 @@ volatile int *SW_BASE_ptr = (int *)0xFF200040;
 //Button 1: Stop
 volatile int *KEY_BASE_ptr = (int *)0xFF200050;
 
+int start_on = 0;
+
 //Operating state = 1 when the start button was pressed
 //Operating state = 0 when the stop button was pressed
 int Operating_state = 0;
@@ -85,7 +87,6 @@ int adc_data_divided = 0;
 int adc_int = 0;
 int adc_data_temp = 0;
 
-int adc_real = 0;
 
 //Maximum range of the returning data from the ADC (12 bits)
 //Let 4095 be 81 degrees of celsius and 0 be 0 degree of celsius
@@ -285,6 +286,7 @@ void ADC_READ(void){
 int main(void){
 
     int Test = 50;
+    current_temp_c = Test;
 
 
 
@@ -301,10 +303,12 @@ int main(void){
         //Start or stop the machine
         if(ReadButtons()==0b01){
             Operating_state = 1;
+            start_on = 1;
 
         }
         else if(ReadButtons()==0b10){
             Operating_state = 0;
+            start_on = 0;
             
         }
 
@@ -316,6 +320,12 @@ int main(void){
         }
         else{
 
+            if(start_on == 1){
+
+                Operating_state = 1;
+
+            }
+
         }
 
 
@@ -325,6 +335,7 @@ int main(void){
             current_LED_temp = current_LED & 0b1;
 
             if(current_LED_temp == 0b0){
+                //Turns on
                 current_LED += 0b1;
             }
 
@@ -334,6 +345,7 @@ int main(void){
             current_LED_temp = current_LED & 0b1;
 
             if(current_LED_temp == 0b1){
+                //Turns off
                 current_LED -= 0b1;
             }
         }
