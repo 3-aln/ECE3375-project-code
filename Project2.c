@@ -2,7 +2,7 @@
 //LED for mode check up
 //LED0: Turn on when the machine is turned on.
 //LED1: Lights up when the Celsius mode is on. LED is off when Fahrenheit mode is on.
-//LED2: Safety switch: Turns on when the current temperature is over 30 degress of celsius
+//LED2: Safety switch: Turns on when the current temperature is over 45 degress of celsius
 volatile int *LED_PTR = (int *)0xFF200000;
 
 int current_LED = 0b0;
@@ -10,7 +10,7 @@ int current_LED_temp = 0b0;
 
 int LED_Bit[] = {0b0, 0b1, 0b11, 0b111, 0b1111, 0b11111, 0b111111, 0b1111111, 0b11111111, 0b111111111, 0b1111111111};
 
-
+int safety_on = 0;
 
 //Right 4 Seven-segments display
 volatile int *hex_ptr0 = (int *)0xFF200020;
@@ -315,7 +315,7 @@ int period_to_temperature(int period) {
 int main(void){
 
     int Test = 50;
-    // current_temp_c = Test;
+    current_temp_c = Test;
 
 
 
@@ -407,6 +407,26 @@ int main(void){
             }
         }
 
+        if(current_temp_c >= 45){
+        current_LED_temp = current_LED & 0b100;
+        safety_on = 1;
+
+        if(current_LED_temp == 0b100){
+            //Turns off
+            current_LED -= 0b100;
+        }
+        else if(current_LED_temp == 0b000 && safety_on == 1){
+            //Turns on
+            current_LED += 0b100;
+
+            }
+        }
+        else if(current_temp_c <= 45){
+
+            safety_on = 0;
+
+        }
+
 
         *(LED_PTR) = current_LED;
 
@@ -420,7 +440,6 @@ int main(void){
 
         // Record the state of the demo switch.
         demo_switch = (*SW_BASE_ptr & (1<<9));     // use switch 9
-        
         if (demo_switch) {
             // For “demo mode”
             // Read ADC channel 1
@@ -428,13 +447,13 @@ int main(void){
 
             if (adc_demo_data & status_bit_mask) {
 			// Update the simulated value for counting the number of 0.1 microsecond intervals
-			    count_period_demo = (adc_demo_data - status_bit_mask) / 100;     // value between 0 and 99 (temp in C)
+			    count_period_demo = count_period_demo / 100;     // value between 0 and 99 (temp in C)
                 count_period_demo = count_period_demo + 273.15;  // Temp in K
                 count_period_demo = count_period_demo * 10;      // Number of microseconds
                 count_period_demo = count_period_demo * 10;      // Number of 0.1 microsecond intervals
 		    }
 
-            int period = count_period_demo * 0.1;    // in microseconds
+            int period = count_period * 0.1;    // in microseconds
             temperature = period_to_temperature(period);
             current_temp_c = temperature;
 
