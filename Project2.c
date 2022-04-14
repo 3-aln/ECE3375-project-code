@@ -46,16 +46,10 @@ int Operating_state = 0;
 //ADC Address
 # define ADC_BASE 0xFF204000
 
-
-
-//For simulator, 16
-//int bit_mask_15 = 0b10000000000000000;
-
 //For real hardware
 int bit_mask_15 = 0b1000000000000000;
 
 
-//////////////////////////////////////////////////////////
 #define MPCORE_PRIV_TIMER     0xFFFEC600    // A9 private timer, 200 MHz clock
 #define uint32_t unsigned int
 
@@ -68,7 +62,6 @@ typedef struct _a9_timer {
 
 // Pointer to the private timer
 volatile a9_timer* const timer = (a9_timer*) MPCORE_PRIV_TIMER;
-//////////////////////////////////////////////////////////
 
 
 
@@ -113,8 +106,6 @@ int set_up_temp_c = 0;
 int current_temp_c = 0;
 
 
-
-
 //Seven segment array
 //Numbers
 char num_code[] = {0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F};
@@ -132,13 +123,6 @@ int T0 = 0x3F;
 int T1 = 0x3F;
 int T2 = 0x3F;
 int T3 = 0x3F;
-
-
-
-
-
-
-
 
 
 
@@ -248,8 +232,8 @@ int mode_Tenth_One(int value){
 }
 
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//Use This for the display! Putting in the Celsius value will do things for you.
+//Combining two functions into one function for display
+//It takes in celsius integer value and shows on the seven-segment displays according to what unit the user wants to see
 void DisplaySevenSegment(int value){
     DisplayHexR4(mode_Tenth_One(value));
     DisplayHexL2(Thousand_Hundred_Separator(value));
@@ -289,8 +273,6 @@ void ADC_READ(void){
 }
 
 
-////////////////////////////////////////////////////////////
-// Added functions
 
 // Wait for 0.1 us.
 void wait(void) {
@@ -305,7 +287,6 @@ int period_to_temperature(int period) {
     temperature = temperature - 273.15;
     return temperature;
 }
-////////////////////////////////////////////////////////////
 
 
 
@@ -314,12 +295,6 @@ int period_to_temperature(int period) {
 //Main code
 int main(void){
 
-    int Test = 50;
-    current_temp_c = Test;
-
-
-
-    /////////////////////////////////////////////////////////////////
     // Set up GPIO port 0 as input for the MAX6576 temperature sensor
     int gpio_direction_mask = 0xFFFFFBFF;               // set GPIO port 10 to 0 (input)
     int gpio_direction_state;
@@ -343,8 +318,6 @@ int main(void){
     int status_bit_mask = 1 << 15;
     int count_period_demo;
 
-    /////////////////////////////////////////////////////////////////
-
 
 
     //Repeating while loop
@@ -355,6 +328,9 @@ int main(void){
         if(switch_set == 0b0){
             DisplaySevenSegment(Test);
         }
+
+        //Reads the ADC data for the potentiometer
+        //It is to set up the desired temperature
         ADC_READ();
 
         //Start or stop the machine
@@ -370,7 +346,7 @@ int main(void){
         }
 
 
-        //Compares the current temperature and the set up temperature
+        //Compares the current temperature and the set up temperature to see if the machine has to heat up
         if(current_temp_c >= set_up_temp_c){
             
             Operating_state = 0;
@@ -392,7 +368,7 @@ int main(void){
             current_LED_temp = current_LED & 0b1;
 
             if(current_LED_temp == 0b0){
-                //Turns on
+                //Turns on LED0
                 current_LED += 0b1;
             }
 
@@ -402,7 +378,7 @@ int main(void){
             current_LED_temp = current_LED & 0b1;
 
             if(current_LED_temp == 0b1){
-                //Turns off
+                //Turns off LED0
                 current_LED -= 0b1;
             }
         }
@@ -412,11 +388,11 @@ int main(void){
         safety_on = 1;
 
         if(current_LED_temp == 0b100){
-            //Turns off
+            //Turns off LED2
             current_LED -= 0b100;
         }
         else if(current_LED_temp == 0b000 && safety_on == 1){
-            //Turns on
+            //Turns on LED2
             current_LED += 0b100;
 
             }
@@ -427,11 +403,9 @@ int main(void){
 
         }
 
-
+        //Lights up the LED
         *(LED_PTR) = current_LED;
 
-
-        /////////////////////////////////////////////////////////////////////
 
         wait();
 
@@ -471,24 +445,13 @@ int main(void){
             }
             
             prev_temp_sensor_state = current_temp_sensor_state;
+
         }
-
-        /////////////////////////////////////////////////////////////////////
-
 
 
     }
 
 
-
-
-
 }
-
-
-
-
-
-
 
 
